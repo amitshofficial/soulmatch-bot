@@ -285,9 +285,12 @@ async def report_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await db.commit()
     await update.message.reply_text("Report received. Admin will review it.")
 
-# --- main ---
-async def main():
-    await init_db()
+# --- setup and run (synchronous) ---
+def build_and_run():
+    # Initialize DB synchronously by running the coroutine
+    import asyncio as _asyncio
+    _asyncio.get_event_loop().run_until_complete(init_db())
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     conv = ConversationHandler(
@@ -310,7 +313,8 @@ async def main():
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), relay_messages))
 
     logger.info("Bot starting (polling)...")
-    await app.run_polling()
+    # run_polling is a convenience (blocking) method — call it directly
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    build_and_run()
